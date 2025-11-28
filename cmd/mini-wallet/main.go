@@ -40,12 +40,12 @@ func main() {
 	}
 
 	log.Info("CHECKING DB Conn,", slog.String("Trying to connect with DSN", pgConfig.DSN))
-	// storage, err := postgres.New(pgConfig)
-	// if err != nil {
-	// 	log.Error("failed to init storage", sl.Err(err))
-	// }
+	storage, err := postgres.New(pgConfig, log)
+	if err != nil {
+		log.Error("failed to init storage", sl.Err(err))
+	}
 
-	// _ = storage
+	_ = storage
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)

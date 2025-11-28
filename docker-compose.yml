@@ -9,12 +9,12 @@ services:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
-  healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 10s
-      retries: 12
-      start_period: 5s
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres"]
+        interval: 10s
+        timeout: 10s
+        retries: 12
+        start_period: 5s
 
 
   app:
@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      qa_postgres:
+      wallet_postgres:
         condition: service_healthy
     environment:
       CONFIG_PATH: /app/config/dev.yaml
