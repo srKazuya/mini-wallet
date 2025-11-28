@@ -40,3 +40,74 @@ func New(cfg Config, log *slog.Logger) (*PostgresStorage, error) {
 }
 
 
+func (s *PostgresStorage) AddTransaction(ctx context.Context, t w.Transaction) (w.Transaction, error) {
+	const op = "stroage.pg.AddTransaction"
+
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return w.Transaction{}, fmt.Errorf("%s: begin tx:%w", op, err)
+	}
+	defer tx.Rollback()
+
+	var currentBalance float64
+	if err = tx.QueryRowContext(ctx, `
+		SELECT balance 
+		FROM wallets
+		WHERE id = $1
+		FOR UPDATE
+	`, t.WalletID).Scan(&currentBalance); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return w.Transaction{}, ErrWalletNotFound
+		}
+		return w.Transaction{}, fmt.Errorf("%s: select wallet: %w", op, err)
+	}
+
+	if t.TrType == "withdraw" && currentBalance < t.Amount {
+		return w.Transaction{}, ErrInsFunds
+	}
+
+	newBalance := currentBalance
+	if t.TrType == "deposit" {
+		newBalance += t.Amount
+	} else {
+		newBalance -= t.Amount
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		UPDATE wallets
+		SET balance = $1
+		WHERE id = $2
+	`, newBalance, t.WalletID)
+	if err != nil {
+		return w.Transaction{}, fmt.Errorf("%s: update balance:%w", op, err)
+	}
+
+	query := `
+		INSERT INTO transactions (wallet_id, amount, transaction_type)
+		VALUES ($1, $2, $3)
+		RETURNING id, wallet_id, amount, transaction_type, created_at
+	`
+
+	var output w.Transaction
+
+	err = tx.QueryRowContext(ctx, query, t.WalletID, t.Amount, t.TrType).Scan(
+		&output.ID,
+		&output.WalletID,
+		&output.Amount,
+		&output.TrType,
+		&output.CreatedAt,
+	)
+	if err != nil {
+		var pgErr *pq.Error
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+			return w.Transaction{}, ErrWalletNotFound
+		}
+		return w.Transaction{}, fmt.Errorf("%s: insert transaction: %w", op, err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return w.Transaction{}, fmt.Errorf("%s: commit: %w", op, err)
+	}
+
+	return output, nil
+}
