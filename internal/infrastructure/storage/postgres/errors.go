@@ -5,8 +5,8 @@ import (
 )
 
 var (
-	ErrOpenDB          = errors.New("failed to open database")
-	ErrMigration       = errors.New("failed to run migrations")
-	ErrGormOpen        = errors.New("failed to gorm open")
-	ErrReviewerNotInPR = errors.New("reviewer not in pr")
+	ErrOpenDB         = errors.New("failed to open database")
+	ErrMigration      = errors.New("failed to run migrations")
+	ErrInsFunds       = errors.New("Insufficient funds")
+	ErrWalletNotFound = errors.New("Wallet not Found")
 )

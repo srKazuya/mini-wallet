@@ -1,8 +1,11 @@
 package wallet
 
+import "time"
+
 type Transaction struct {
-	UUID     uint64
-	WalletID uint64
-	Type     string
-	amount   float64
+	ID      uint64
+	WalletID  uint64
+	TrType    string
+	Amount    float64
+	CreatedAt time.Time
 }

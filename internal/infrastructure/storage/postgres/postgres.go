@@ -1,13 +1,17 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
-	
+	"log/slog"
+	w "mini-wallet/internal/domain/wallet"
+
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 
 	"github.com/pressly/goose/v3"
-	"log/slog"
 )
 
 type PostgresStorage struct {
@@ -34,3 +38,5 @@ func New(cfg Config, log *slog.Logger) (*PostgresStorage, error) {
 
 	return &PostgresStorage{db: sqlDB}, nil
 }
+
+
