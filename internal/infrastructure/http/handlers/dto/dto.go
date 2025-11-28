@@ -8,7 +8,7 @@ import (
 
 type AddTransactionRequest struct {
 	WalletID uint64  `json:"wallet_id" validate:"required"`
-	TrType   string  `json:"type" validate:"required, oneof=deposit withdraw"`
+	TrType   string  `json:"type" validate:"required,oneof=deposit withdraw"`
 	Amount   float64 `json:"amount" validate:"required,numeric"`
 }
 

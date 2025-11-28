@@ -33,7 +33,7 @@ func NewAddTransaction(log *slog.Logger, svc wallet.Service) http.HandlerFunc {
 				slog.String("type", transport.ErrEmptyReqBody.Error()),
 				sl.Err(err),
 			)
-			addTransactionResponseErr(w, transport.ErrEmptyReqBody.Error())
+			addTransactionResponseErr(w, http.StatusBadRequest, transport.ErrEmptyReqBody.Error())
 			return
 		}
 		if err != nil {
@@ -41,7 +41,7 @@ func NewAddTransaction(log *slog.Logger, svc wallet.Service) http.HandlerFunc {
 				slog.String("type", transport.ErrFailedToDecodeReqBody.Error()),
 				sl.Err(err),
 			)
-			addTransactionResponseErr(w, transport.ErrFailedToDecodeReqBody.Error())
+			addTransactionResponseErr(w, http.StatusBadRequest, transport.ErrFailedToDecodeReqBody.Error())
 			return
 		}
 
@@ -89,11 +89,11 @@ func addTransactionResponseOK(w http.ResponseWriter, t string, a float64) {
 	}
 }
 
-func addTransactionResponseErr(w http.ResponseWriter, e string) {
+func addTransactionResponseErr(w http.ResponseWriter, status int, e string) {
 	r := dto.AddTransactionResponse{
 		ValidationResponse: valResp.Error(e),
 	}
-	if err := transport.WriteJSON(w, http.StatusOK, r); err != nil {
+	if err := transport.WriteJSON(w, status, r); err != nil {
 		http.Error(w, "failed to encode JSON", http.StatusInternalServerError)
 		return
 	}

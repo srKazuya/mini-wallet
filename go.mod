@@ -1,6 +1,6 @@
 module mini-wallet
 
-go 1.24.5
+go 1.25
 
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
@@ -19,6 +19,7 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
+	github.com/brianvoe/gofakeit/v7 v7.11.0
 	github.com/fatih/color v1.18.0
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-playground/locales v0.14.1 // indirect

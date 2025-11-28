@@ -3,16 +3,19 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 	"mini-wallet/internal/config"
+	"mini-wallet/internal/domain/wallet"
+	"mini-wallet/internal/infrastructure/http/handlers"
 	mw "mini-wallet/internal/infrastructure/http/middleware"
 	"mini-wallet/internal/infrastructure/storage/postgres"
 	"mini-wallet/pkg/sl_logger/sl"
 	"mini-wallet/pkg/sl_logger/slogpretty"
 	"net/http"
 	"os"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const (
@@ -45,7 +48,7 @@ func main() {
 		log.Error("failed to init storage", sl.Err(err))
 	}
 
-	_ = storage
+	svc := wallet.NewService(log, storage)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -53,6 +56,8 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.URLFormat)
 	r.Use(mw.New(log))
+
+	r.Post("/wallet", handlers.NewAddTransaction(log, svc))
 
 	srv := &http.Server{
 		Addr:         cfg.Address,

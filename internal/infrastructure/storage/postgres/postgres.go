@@ -33,12 +33,15 @@ func New(cfg Config, log *slog.Logger) (*PostgresStorage, error) {
 		return nil, fmt.Errorf("%s: %w: %w", op, ErrMigration, err)
 	}
 
-	//DB seed
-	// log.Info("start seeding...")
+	log.Info("start seeding...")
+	if cfg.Seed {
+		if err := SeedWallets(sqlDB, log); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+	}
 
 	return &PostgresStorage{db: sqlDB}, nil
 }
-
 
 func (s *PostgresStorage) AddTransaction(ctx context.Context, t w.Transaction) (w.Transaction, error) {
 	const op = "stroage.pg.AddTransaction"
