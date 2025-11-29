@@ -8,6 +8,7 @@ import (
 	"mini-wallet/internal/domain/wallet"
 	dto "mini-wallet/internal/infrastructure/http/handlers/dto"
 	"mini-wallet/internal/infrastructure/http/transport"
+	"mini-wallet/internal/infrastructure/storage/postgres"
 	"mini-wallet/pkg/sl_logger/sl"
 	valResp "mini-wallet/pkg/validator"
 	"net/http"
@@ -62,9 +63,14 @@ func NewAddTransaction(log *slog.Logger, svc wallet.Service) http.HandlerFunc {
 		transaction, err := svc.AddTransaction(ctx, t)
 		if err != nil {
 			switch {
-			// case errors.Is(err, postgres.ErrNoValue):
-			// 	log.Error("failed to add transaction", sl.Err(err))
-			// 	return
+			case errors.Is(err, postgres.ErrInsFunds):
+				log.Error(postgres.ErrInsFunds.Error(), sl.Err(err))
+				addTransactionResponseErr(w, http.StatusBadRequest, postgres.ErrInsFunds.Error())
+				return
+			case errors.Is(err, postgres.ErrWalletNotFound):
+				log.Error(postgres.ErrWalletNotFound.Error(), sl.Err(err))
+				addTransactionResponseErr(w, http.StatusBadRequest, postgres.ErrWalletNotFound.Error())
+				return
 			default:
 				log.Error("unexpected error adding event", sl.Err(err))
 				return
@@ -73,15 +79,16 @@ func NewAddTransaction(log *slog.Logger, svc wallet.Service) http.HandlerFunc {
 
 		log.Info("transaction added", slog.Any("title", transaction.WalletID))
 
-		addTransactionResponseOK(w, transaction.TrType, transaction.Amount)
+		addTransactionResponseOK(w, transaction)
 	}
 }
 
-func addTransactionResponseOK(w http.ResponseWriter, t string, a float64) {
+func addTransactionResponseOK(w http.ResponseWriter, t wallet.Transaction) {
 	r := dto.AddTransactionResponse{
 		ValidationResponse: valResp.OK(),
-		TrType:             t,
-		Amount:             a,
+		TrType:             t.TrType,
+		Amount:             t.Amount,
+		CreatedAt:          t.CreatedAt,
 	}
 	if err := transport.WriteJSON(w, http.StatusOK, r); err != nil {
 		http.Error(w, "failed to encode JSON", http.StatusInternalServerError)
