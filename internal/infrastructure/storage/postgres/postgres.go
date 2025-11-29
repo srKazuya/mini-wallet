@@ -29,8 +29,8 @@ func New(cfg Config, log *slog.Logger) (*PostgresStorage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w: %w", op, ErrOpenDB, err)
 	}
-	sqlDB.SetMaxOpenConns(20)
-	sqlDB.SetMaxIdleConns(20)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetMaxIdleConns(100)
 	sqlDB.SetConnMaxLifetime(time.Minute * 5)
 	sqlDB.SetConnMaxIdleTime(time.Minute)
 
