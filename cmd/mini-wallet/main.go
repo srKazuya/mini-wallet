@@ -57,8 +57,9 @@ func main() {
 	r.Use(middleware.URLFormat)
 	r.Use(mw.New(log))
 
-	r.Post("/wallet", handlers.NewAddTransaction(log, svc))
-
+	r.Post("/api/v1/wallet", handlers.NewAddTransaction(log, svc))
+	r.Get("/api/v1/wallets/{WALLET_UUID}", handlers.NewGetWallet(log, svc))
+	
 	srv := &http.Server{
 		Addr:         cfg.Address,
 		Handler:      r,

@@ -42,6 +42,34 @@ func (_m *Service) AddTransaction(ctx context.Context, t wallet.Transaction) (wa
 	return r0, r1
 }
 
+// GetWallet provides a mock function with given fields: ctx, id
+func (_m *Service) GetWallet(ctx context.Context, id int) (wallet.Wallet, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWallet")
+	}
+
+	var r0 wallet.Wallet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) (wallet.Wallet, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int) wallet.Wallet); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(wallet.Wallet)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewService creates a new instance of Service. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewService(t interface {

@@ -1,17 +1,12 @@
 import http from 'k6/http';
 
 export const options = {
-  vus: 1,
-  duration: '20s',
+  vus: 100,
+  duration: '10s',
 };
 
 export default function () {
-  http.post(
-    'http://localhost:8080/wallet',
-    JSON.stringify({
-    "wallet_id": 1,
-    "type": "deposit",
-    "amount": 1   }),
-    { headers: { 'Content-Type': 'application/json' } }
+  http.get(
+    'http://localhost:8080/api/v1/wallets/1'
   );
 }

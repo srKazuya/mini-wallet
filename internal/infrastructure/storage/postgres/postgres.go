@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	w "mini-wallet/internal/domain/wallet"
+	"time"
 
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
@@ -28,6 +29,11 @@ func New(cfg Config, log *slog.Logger) (*PostgresStorage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w: %w", op, ErrOpenDB, err)
 	}
+	sqlDB.SetMaxOpenConns(20)
+	sqlDB.SetMaxIdleConns(20)
+	sqlDB.SetConnMaxLifetime(time.Minute * 5)
+	sqlDB.SetConnMaxIdleTime(time.Minute)
+
 	log.Info("start migrate...", slog.String("path", cfg.MigrationsPath))
 	if err := goose.Up(sqlDB, cfg.MigrationsPath); err != nil {
 		return nil, fmt.Errorf("%s: %w: %w", op, ErrMigration, err)
@@ -78,7 +84,7 @@ func (s *PostgresStorage) AddTransaction(ctx context.Context, t w.Transaction) (
 
 	_, err = tx.ExecContext(ctx, `
 		UPDATE wallets
-		SET balance = $1
+		SET balance = $1, updated_at = NOW()
 		WHERE id = $2
 	`, newBalance, t.WalletID)
 	if err != nil {
@@ -113,4 +119,26 @@ func (s *PostgresStorage) AddTransaction(ctx context.Context, t w.Transaction) (
 	}
 
 	return output, nil
+}
+
+func (s *PostgresStorage) GetWallet(ctx context.Context, id int) (w.Wallet, error) {
+	const op = "stroage.pg.GetWallet"
+
+	var wallet w.Wallet
+	err := s.db.QueryRowContext(ctx, `
+	SELECT id, balance, created_at, updated_at
+	FROM wallets 
+	WHERE id=$1`, id).Scan(
+		&wallet.ID,
+		&wallet.Balance,
+		&wallet.CreatedAt,
+		&wallet.UpdatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return w.Wallet{}, ErrWalletNotFound
+	}
+	if err != nil {
+		return w.Wallet{}, fmt.Errorf("%s:query wallet:%w", op, err)
+	}
+	return wallet, nil
 }

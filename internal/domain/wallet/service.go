@@ -7,6 +7,7 @@ import (
 
 type Service interface {
 	AddTransaction(ctx context.Context, t Transaction) (Transaction, error)
+	GetWallet(ctx context.Context, id int) (Wallet, error)
 }
 type service struct {
 	log     *slog.Logger
@@ -19,4 +20,7 @@ func NewService(log *slog.Logger, storage Storage) Service {
 
 func (s *service) AddTransaction(ctx context.Context, t Transaction) (Transaction, error) {
 	return s.storage.AddTransaction(ctx, t)
+}
+func (s *service) GetWallet(ctx context.Context, id int) (Wallet, error) {
+	return s.storage.GetWallet(ctx, id)
 }

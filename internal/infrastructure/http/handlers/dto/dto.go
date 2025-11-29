@@ -19,7 +19,15 @@ type AddTransactionResponse struct {
 	resp.ValidationResponse
 }
 
-//AddTransactionMapToModel
+type GetWalletResponse struct {
+	ID        uint64    `json:"id"`
+	Balance   float64   `json:"balance"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	resp.ValidationResponse
+}
+
+// AddTransactionMapToModel
 func AddTransactionMapToModel(t AddTransactionRequest) wallet.Transaction {
 	return wallet.Transaction{
 		WalletID: t.WalletID,
