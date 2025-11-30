@@ -28,6 +28,7 @@ services:
       CONFIG_PATH: /app/config/dev.yaml
     ports:
       - "8080:8080"
+  
 
 volumes:
   pg_data:     
