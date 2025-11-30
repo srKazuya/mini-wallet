@@ -65,11 +65,11 @@ func NewAddTransaction(log *slog.Logger, svc wallet.Service) http.HandlerFunc {
 			switch {
 			case errors.Is(err, postgres.ErrInsFunds):
 				log.Error(postgres.ErrInsFunds.Error(), sl.Err(err))
-				addTransactionResponseErr(w, http.StatusBadRequest, postgres.ErrInsFunds.Error())
+				addTransactionResponseErr(w, http.StatusOK, postgres.ErrInsFunds.Error())
 				return
 			case errors.Is(err, postgres.ErrWalletNotFound):
 				log.Error(postgres.ErrWalletNotFound.Error(), sl.Err(err))
-				addTransactionResponseErr(w, http.StatusBadRequest, postgres.ErrWalletNotFound.Error())
+				addTransactionResponseErr(w, http.StatusNotFound, postgres.ErrWalletNotFound.Error())
 				return
 			default:
 				log.Error("unexpected error adding event", sl.Err(err))

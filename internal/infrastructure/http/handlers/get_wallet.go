@@ -41,7 +41,7 @@ func NewGetWallet(log *slog.Logger, svc wallet.Service) http.HandlerFunc {
 			switch {
 			case errors.Is(err, postgres.ErrWalletNotFound):
 				log.Error(postgres.ErrWalletNotFound.Error(), sl.Err(err))
-				getWalletResponseErr(w, http.StatusBadRequest, postgres.ErrWalletNotFound.Error())
+				getWalletResponseErr(w, http.StatusNotFound, postgres.ErrWalletNotFound.Error())
 				return
 			default:
 				log.Error("unexpected error getting event", sl.Err(err))
